@@ -1,6 +1,6 @@
 #include "MarkerRecognizer.h"
-#include <opencv2\imgproc\imgproc.hpp>
-#include <opencv2\calib3d\calib3d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <math.h>
 #include <string>
 #include <sstream>
@@ -153,6 +153,8 @@ void MarkerRecognizer::markerRecognize(cv::Mat& img_gray, vector<Marker>& possib
 		warpPerspective(img_gray, marker_image, M, Size(MARKER_SIZE, MARKER_SIZE));
 		threshold(marker_image, marker_image, 125, 255, THRESH_BINARY|THRESH_OTSU); //OTSU determins threshold automatically.
 
+        int iswrongmarker = 0;
+        
 		//A marker must has a whole black border.
 		for (int y = 0; y < 7; ++y)
 		{
@@ -164,9 +166,14 @@ void MarkerRecognizer::markerRecognize(cv::Mat& img_gray, vector<Marker>& possib
 				int cell_x = x*MARKER_CELL_SIZE;
 				int none_zero_count = countNonZero(marker_image(Rect(cell_x, cell_y, MARKER_CELL_SIZE, MARKER_CELL_SIZE)));
 				if (none_zero_count > MARKER_CELL_SIZE*MARKER_CELL_SIZE/4)
-					goto __wrongMarker;
+                {
+                    iswrongmarker++;
+                }
 			}
 		}
+        
+        if(iswrongmarker == 0)
+        {
 
 		//Decode the marker
 		for (int y = 0; y < 5; ++y)
@@ -196,16 +203,18 @@ void MarkerRecognizer::markerRecognize(cv::Mat& img_gray, vector<Marker>& possib
 			}
 			bit_matrix = bitMatrixRotate(bit_matrix);
 		}
-		if (!good_marker) goto __wrongMarker;
+		if (good_marker)
+        {
 
 		//Store the final marker
 		Marker& final_marker = possible_markers[i];
 		final_marker.m_id = bitMatrixToId(bit_matrix);
 		std::rotate(final_marker.m_corners.begin(), final_marker.m_corners.begin() + rotation_idx, final_marker.m_corners.end());
 		final_markers.push_back(final_marker);
+            
+        }
+        }
 
-__wrongMarker:
-		continue;
 	}
 }
 

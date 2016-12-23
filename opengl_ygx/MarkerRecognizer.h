@@ -1,7 +1,7 @@
 #ifndef __MARKER_RECOGNIZER_H__
 #define __MARKER_RECOGNIZER_H__
 
-#include <opencv2\core\core.hpp>
+#include <opencv2/core/core.hpp>
 #include <vector>
 
 class Marker
